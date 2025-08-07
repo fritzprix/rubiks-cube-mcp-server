@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Rubik's Cube Visualizer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.socket.io/4.7.5/socket.io.min.js"></script>
+    <link rel="stylesheet" href="/styles/cube.css">
+</head>
+<body>
+    <div class="header">
+        <div class="game-info">
+            <div>
+                <a href="/" class="back-link">← Back to Games</a>
+                <h1>🎲 3D Rubik's Cube Solver</h1>
+            </div>
+            <div class="info-item">Game: <strong><%= gameId %></strong></div>
+            <div id="status" class="status active">Connecting...</div>
+        </div>
+    </div>
+    
+    <div id="connectionStatus" class="connection-status disconnected">
+        ● Disconnected
+    </div>
+    
+    <div class="cube-container">
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            Loading 3D Cube...
+        </div>
+        <canvas id="cubeCanvas" width="800" height="600"></canvas>
+    </div>
+    
+    <div class="info-panel">
+        <div class="info-item">Moves: <span id="moveCount">0</span></div>
+        <div class="info-item">Last Move: <span id="lastMove">None</span></div>
+        <div class="info-item">Status: <span id="gameStatus">Loading...</span></div>
+    </div>
+    
+    <div class="controls">
+        <button class="move-btn" onclick="sendMove('U')" title="Up">U</button>
+        <button class="move-btn" onclick="sendMove('D')" title="Down">D</button>
+        <button class="move-btn" onclick="sendMove('L')" title="Left">L</button>
+        <button class="move-btn" onclick="sendMove('R')" title="Right">R</button>
+        <button class="move-btn" onclick="sendMove('F')" title="Front">F</button>
+        <button class="move-btn" onclick="sendMove('B')" title="Back">B</button>
+        <button class="move-btn" onclick="sendMove('U\'')">U'</button>
+        <button class="move-btn" onclick="sendMove('D\'')">D'</button>
+        <button class="move-btn" onclick="sendMove('L\'')">L'</button>
+        <button class="move-btn" onclick="sendMove('R\'')">R'</button>
+        <button class="move-btn" onclick="sendMove('F\'')">F'</button>
+        <button class="move-btn" onclick="sendMove('B\'')">B'</button>
+        <button class="move-btn" onclick="sendMove('U2')">U2</button>
+        <button class="move-btn" onclick="sendMove('D2')">D2</button>
+        <button class="move-btn" onclick="sendMove('L2')">L2</button>
+        <button class="move-btn" onclick="sendMove('R2')">R2</button>
+        <button class="move-btn" onclick="sendMove('F2')">F2</button>
+        <button class="move-btn" onclick="sendMove('B2')">B2</button>
+    </div>
+
+    <script>
+        const gameId = '<%= gameId %>';
+    </script>
+    <script src="/scripts/cube3d.js"></script>
+    <script src="/scripts/websocket.js"></script>
+    <script src="/scripts/controls.js"></script>
+</body>
+</html>

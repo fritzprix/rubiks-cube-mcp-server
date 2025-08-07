@@ -12,6 +12,13 @@ export interface CubeState {
   moveHistory: string[];
 }
 
+// MCP Tool 응답 타입
+export interface CubeResponse {
+  gameId: string;
+  cube: CubeState;
+  nextAction: 'manipulateCube' | 'finish' | null;
+}
+
 // 큐브 조작 명령
 export type CubeMove = 'U' | 'D' | 'L' | 'R' | 'F' | 'B' | 
                 'U\'' | 'D\'' | 'L\'' | 'R\'' | 'F\'' | 'B\'' |

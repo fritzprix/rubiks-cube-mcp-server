@@ -5,7 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { RubiksCube } from './cubeLogic.js';
 import { VisualizationServer } from './visualizationServer.js';
-import { GameSession, CubeMove } from './types.js';
+import { GameSession, CubeMove, CubeResponse } from './types.js';
 
 class RubiksCubeMCPServer {
   private mcpServer: McpServer;
@@ -50,15 +50,17 @@ class RubiksCubeMCPServer {
         this.visualizationServer.registerSession(session);
         
         const currentState = cube.getState();
+        const response: CubeResponse = {
+          gameId,
+          cube: currentState,
+          nextAction: currentState.solved ? "finish" : "manipulateCube"
+        };
         
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify({
-                cube: currentState,
-                nextAction: currentState.solved ? "finish" : "manipulateCube"
-              }, null, 2)
+              text: JSON.stringify(response, null, 2)
             }
           ]
         };
@@ -83,14 +85,17 @@ class RubiksCubeMCPServer {
         
         // 이미 해결된 큐브인지 확인
         if (session.status === 'completed') {
+          const response: CubeResponse = {
+            gameId,
+            cube: cube.getState(),
+            nextAction: "finish"
+          };
+          
           return {
             content: [
               {
                 type: "text",
-                text: JSON.stringify({
-                  cube: cube.getState(),
-                  nextAction: "finish"
-                }, null, 2)
+                text: JSON.stringify(response, null, 2)
               }
             ]
           };
@@ -110,14 +115,17 @@ class RubiksCubeMCPServer {
         // 시각화 서버 업데이트
         this.visualizationServer.updateSession(gameId, newState);
         
+        const response: CubeResponse = {
+          gameId,
+          cube: newState,
+          nextAction: newState.solved ? "finish" : "manipulateCube"
+        };
+        
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify({
-                cube: newState,
-                nextAction: newState.solved ? "finish" : "manipulateCube"
-              }, null, 2)
+              text: JSON.stringify(response, null, 2)
             }
           ]
         };
@@ -143,14 +151,17 @@ class RubiksCubeMCPServer {
         session.status = 'completed';
         session.lastActivity = Date.now();
         
+        const response: CubeResponse = {
+          gameId,
+          cube: finalState,
+          nextAction: null
+        };
+        
         return {
           content: [
             {
               type: "text",
-              text: JSON.stringify({
-                cube: finalState,
-                nextAction: null
-              }, null, 2)
+              text: JSON.stringify(response, null, 2)
             }
           ]
         };
@@ -159,15 +170,54 @@ class RubiksCubeMCPServer {
   }
 
   async start(): Promise<void> {
-    // 시각화 서버 시작
-    this.visualizationServer.start(3000);
+    // 시각화 서버 시작 - 환경변수 PORT 또는 기본값 3000 사용
+    const port = parseInt(process.env.PORT || '3000');
+    this.visualizationServer.start(port);
     
     // MCP 서버 시작
     const transport = new StdioServerTransport();
+    
+    // Process exit handlers - parent process가 죽으면 함께 종료
+    process.on('SIGINT', () => {
+      console.error("🛑 SIGINT received, shutting down...");
+      this.shutdown();
+    });
+    
+    process.on('SIGTERM', () => {
+      console.error("🛑 SIGTERM received, shutting down...");
+      this.shutdown();
+    });
+    
+    // Stdio disconnect handler - MCP client 연결이 끊어지면 종료
+    process.stdin.on('end', () => {
+      console.error("🛑 Stdin disconnected, shutting down...");
+      this.shutdown();
+    });
+    
+    process.stdin.on('close', () => {
+      console.error("🛑 Stdin closed, shutting down...");
+      this.shutdown();
+    });
+    
     await this.mcpServer.connect(transport);
     
     console.error("🎲 Rubik's Cube MCP Server started!");
     console.error("🌐 Visualization available at: http://localhost:3000");
+  }
+  
+  private shutdown(): void {
+    console.error("🔄 Shutting down servers...");
+    
+    try {
+      // Visualization server 종료
+      this.visualizationServer.stop();
+      console.error("✅ Visualization server stopped");
+    } catch (error) {
+      console.error("❌ Error stopping visualization server:", error);
+    }
+    
+    // Process 종료
+    process.exit(0);
   }
 }
 

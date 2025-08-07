@@ -15,32 +15,35 @@ A Model Context Protocol (MCP) server that provides AI agents with the ability t
 ## Installation & Setup
 
 ### Prerequisites
+
 - Node.js 18.x or higher
 - npm or yarn
 
 ### Install Dependencies
+
 ```bash
 cd rubiks-cube-mcp-server
 npm install
 ```
 
 ### Build the Project
+
 ```bash
 npm run build
 ```
 
-
 ### Run the Server
+
 ```bash
 npx rubiks-cube-mcp-server
 ```
 
 This will start both:
+
 - MCP server on stdio (for AI agent communication)
 - Web visualization server on `http://localhost:3000`
 
 ## Claude Desktop Configuration
-
 
 To use this MCP server with Claude Desktop, add the following to your `claude_desktop_config.json`:
 
@@ -56,6 +59,7 @@ To use this MCP server with Claude Desktop, add the following to your `claude_de
 ```
 
 **Configuration file locations:**
+
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
 - **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
 
@@ -64,37 +68,46 @@ After adding the configuration, restart Claude Desktop to load the MCP server.
 ## MCP Tools
 
 ### 1. `startCube`
+
 Initialize a new Rubik's Cube game session.
 
 **Parameters:**
+
 - `scramble` (optional, boolean): Whether to scramble the cube initially (default: true)
 
 **Returns:**
+
 - Game ID for the session
 - Initial cube state
 - Visualization URL
 - Next action guidance
 
 ### 2. `manipulateCube`
+
 Execute a move on the Rubik's Cube.
 
 **Parameters:**
+
 - `gameId` (string): The game session ID
 - `move` (string): Standard cube notation (U, D, L, R, F, B, U', D', L', R', F', B', U2, D2, L2, R2, F2, B2)
 
 **Returns:**
+
 - Updated cube state
 - Move execution confirmation
 - Total moves count
 - Next action guidance
 
 ### 3. `finish`
+
 Complete the Rubik's Cube game session.
 
 **Parameters:**
+
 - `gameId` (string): The game session ID
 
 **Returns:**
+
 - Final game statistics
 - Move history
 - Completion status
@@ -104,7 +117,7 @@ Complete the Rubik's Cube game session.
 The server uses standard Rubik's Cube notation:
 
 - **U**: Up face clockwise
-- **D**: Down face clockwise  
+- **D**: Down face clockwise
 - **L**: Left face clockwise
 - **R**: Right face clockwise
 - **F**: Front face clockwise
@@ -123,7 +136,7 @@ Agent: "Execute move U"
 → manipulateCube tool called with move "U"
 → Returns updated state and nextAction guidance
 
-Agent: "Continue solving..." 
+Agent: "Continue solving..."
 → Recursive manipulateCube calls until solved
 → finish tool called when complete
 ```
@@ -131,6 +144,7 @@ Agent: "Continue solving..."
 ## Web Visualization
 
 Visit `http://localhost:3000/game/{gameId}` to see:
+
 - Real-time 3D cube representation
 - Color-coded faces (White, Yellow, Red, Orange, Blue, Green)
 - Move counter and history
@@ -150,7 +164,7 @@ Visit `http://localhost:3000/game/{gameId}` to see:
 The server follows the recursive MCP pattern:
 
 1. **Start** → Returns nextAction: 'manipulateCube'
-2. **Manipulate** → Returns nextAction: 'manipulateCube' (if not solved) or 'finish' (if solved)  
+2. **Manipulate** → Returns nextAction: 'manipulateCube' (if not solved) or 'finish' (if solved)
 3. **Finish** → Returns nextAction: null (workflow complete)
 
 This allows AI agents to work autonomously through the solving process.
@@ -158,16 +172,19 @@ This allows AI agents to work autonomously through the solving process.
 ## Development
 
 ### Watch Mode
+
 ```bash
 npm run dev
 ```
 
 ### Building
+
 ```bash
 npm run build
 ```
 
 ### Project Structure
+
 ```
 src/
   ├── app.ts              # Main MCP server setup

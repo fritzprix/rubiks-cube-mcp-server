@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik's Cube Games</title>
+    <link rel="stylesheet" href="/styles/main.css">
+</head>
+<body>
+    <div class="header">
+        <h1>🎲 Rubik's Cube Games</h1>
+        <p>View and manage your cube solving sessions</p>
+    </div>
+    
+    <div class="games-container">
+        <% if (games && games.length > 0) { %>
+            <% games.forEach(game => { %>
+                <div class="game-card" onclick="window.location.href='/game/<%= game.id %>'">
+                    <div class="game-header">
+                        <span class="game-icon"><%= game.statusIcon %></span>
+                        <div class="game-title"><%= game.title %></div>
+                        <div class="game-status <%= game.status %>"><%= game.statusText %></div>
+                    </div>
+                    <div class="game-details">
+                        <div>Moves: <%= game.moveCount %></div>
+                        <div>Created: <%= game.createdAt %></div>
+                    </div>
+                </div>
+            <% }) %>
+        <% } else { %>
+            <div class="empty-state">
+                <h2>No games yet</h2>
+                <p>Start a new Rubik's Cube game using the MCP server<br>to see it appear here!</p>
+            </div>
+        <% } %>
+    </div>
+    
+    <script src="/scripts/gameList.js"></script>
+</body>
+</html>
