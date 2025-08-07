@@ -1,6 +1,5 @@
 import express from 'express';
 import { createServer } from 'http';
-import { Server as SocketIOServer } from 'socket.io';
 import { CubeState, GameSession } from './types.js';
 
 export class VisualizationServer {
@@ -127,6 +126,178 @@ export class VisualizationServer {
 
   // HTML 페이지 생성
   private getHTMLPage(gameId?: string): string {
+    if (gameId) {
+      return this.getGamePage(gameId);
+    } else {
+      return this.getGameListPage();
+    }
+  }
+
+  // 게임 리스트 페이지
+  private getGameListPage(): string {
+    const gamesList = Array.from(this.sessions.entries()).map(([id, session]) => {
+      const createdDate = new Date(session.createdAt).toLocaleString();
+      const statusIcon = session.status === 'completed' ? '🎉' : '🎲';
+      const statusText = session.status === 'completed' ? 'SOLVED' : 'Active';
+      const moveCount = session.cubeState.moveHistory.length;
+      
+      return `
+        <div class="game-card" onclick="window.location.href='/game/${id}'">
+          <div class="game-header">
+            <span class="game-icon">${statusIcon}</span>
+            <div class="game-title">Game ${id.split('_')[1]}</div>
+            <div class="game-status ${session.status}">${statusText}</div>
+          </div>
+          <div class="game-details">
+            <div>Moves: ${moveCount}</div>
+            <div>Created: ${createdDate}</div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    return `
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rubik's Cube Games</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+            color: white;
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin: 0;
+            text-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin: 10px 0;
+        }
+        
+        .games-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+        
+        .game-card {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .game-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            background: rgba(255, 255, 255, 0.15);
+        }
+        
+        .game-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        
+        .game-icon {
+            font-size: 2rem;
+        }
+        
+        .game-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            flex: 1;
+        }
+        
+        .game-status {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: bold;
+        }
+        
+        .game-status.active {
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+        }
+        
+        .game-status.completed {
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+        }
+        
+        .game-details {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            opacity: 0.7;
+        }
+        
+        .empty-state h2 {
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+        
+        .empty-state p {
+            font-size: 1.1rem;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🎲 Rubik's Cube Games</h1>
+        <p>View and manage your cube solving sessions</p>
+    </div>
+    
+    <div class="games-container">
+        ${gamesList || `
+            <div class="empty-state">
+                <h2>No games yet</h2>
+                <p>Start a new Rubik's Cube game using the MCP server<br>to see it appear here!</p>
+            </div>
+        `}
+    </div>
+    
+    <script>
+        // Auto-refresh every 5 seconds to show new games
+        setInterval(() => {
+            window.location.reload();
+        }, 5000);
+    </script>
+</body>
+</html>
+    `;
+  }
+
+  // 개별 게임 페이지
+  private getGamePage(gameId: string): string {
     return `
 <!DOCTYPE html>
 <html lang="en">
@@ -310,7 +481,10 @@ export class VisualizationServer {
 <body>
     <div class="header">
         <div class="game-info">
-            <h1>🎲 3D Rubik's Cube Solver</h1>
+            <div>
+                <a href="/" style="color: rgba(255,255,255,0.7); text-decoration: none; font-size: 0.9rem;">← Back to Games</a>
+                <h1 style="margin: 5px 0;">🎲 3D Rubik's Cube Solver</h1>
+            </div>
             ${gameId ? `<div class="info-item">Game: <strong>${gameId}</strong></div>` : '<div class="info-item">No active game</div>'}
             <div id="status" class="status active">Connecting...</div>
         </div>
@@ -467,18 +641,103 @@ export class VisualizationServer {
             }
         }
         
-        function updateCubeColors(faces) {
-            // 면별 색상 업데이트 로직
-            // 이 부분은 복잡하므로 간단히 랜덤 색상으로 대체
+        function updateCubeColors(state) {
+            if (!state || !state.faces) return;
+            
+            // 큐브 상태에 따라 각 작은 큐브의 면 색상을 업데이트
+            const faces = state.faces;
+            
             cubies.forEach(cube => {
+                const { x, y, z } = cube.userData;
                 const materials = cube.material;
+                
                 if (Array.isArray(materials)) {
-                    materials.forEach((material, index) => {
-                        const colors = Object.values(colorMap);
-                        material.color.setHex(colors[Math.floor(Math.random() * colors.length)]);
-                    });
+                    // 각 면의 색상을 큐브 상태에 맞게 설정
+                    
+                    // Right face (x = 1)
+                    if (x === 1) {
+                        const faceIndex = getFaceIndex('right', y, z);
+                        const row = Math.floor(faceIndex / 3);
+                        const col = faceIndex % 3;
+                        if (faces.right && faces.right[row] && faces.right[row][col]) {
+                            materials[0].color.setHex(colorMap[faces.right[row][col]]);
+                        }
+                    }
+                    
+                    // Left face (x = -1)  
+                    if (x === -1) {
+                        const faceIndex = getFaceIndex('left', y, z);
+                        const row = Math.floor(faceIndex / 3);
+                        const col = faceIndex % 3;
+                        if (faces.left && faces.left[row] && faces.left[row][col]) {
+                            materials[1].color.setHex(colorMap[faces.left[row][col]]);
+                        }
+                    }
+                    
+                    // Top face (y = 1)
+                    if (y === 1) {
+                        const faceIndex = getFaceIndex('top', x, z);
+                        const row = Math.floor(faceIndex / 3);
+                        const col = faceIndex % 3;
+                        if (faces.top && faces.top[row] && faces.top[row][col]) {
+                            materials[2].color.setHex(colorMap[faces.top[row][col]]);
+                        }
+                    }
+                    
+                    // Bottom face (y = -1)
+                    if (y === -1) {
+                        const faceIndex = getFaceIndex('bottom', x, z);
+                        const row = Math.floor(faceIndex / 3);
+                        const col = faceIndex % 3;
+                        if (faces.bottom && faces.bottom[row] && faces.bottom[row][col]) {
+                            materials[3].color.setHex(colorMap[faces.bottom[row][col]]);
+                        }
+                    }
+                    
+                    // Front face (z = 1)
+                    if (z === 1) {
+                        const faceIndex = getFaceIndex('front', x, y);
+                        const row = Math.floor(faceIndex / 3);
+                        const col = faceIndex % 3;
+                        if (faces.front && faces.front[row] && faces.front[row][col]) {
+                            materials[4].color.setHex(colorMap[faces.front[row][col]]);
+                        }
+                    }
+                    
+                    // Back face (z = -1)
+                    if (z === -1) {
+                        const faceIndex = getFaceIndex('back', x, y);
+                        const row = Math.floor(faceIndex / 3);
+                        const col = faceIndex % 3;
+                        if (faces.back && faces.back[row] && faces.back[row][col]) {
+                            materials[5].color.setHex(colorMap[faces.back[row][col]]);
+                        }
+                    }
                 }
             });
+        }
+        
+        // 3D 좌표를 면 배열 인덱스로 변환
+        function getFaceIndex(face, coord1, coord2) {
+            // 3x3 격자에서 (-1,-1) = 0, (-1,0) = 1, (-1,1) = 2, (0,-1) = 3, ...
+            const normalize = (val) => val + 1; // -1,0,1 -> 0,1,2
+            
+            switch(face) {
+                case 'top': // Top face (y=1): x,z 좌표 사용
+                case 'bottom': // Bottom face (y=-1): x,z 좌표 사용
+                    return normalize(coord2) * 3 + normalize(coord1); // z*3 + x
+                    
+                case 'front': // Front face (z=1): x,y 좌표 사용
+                case 'back': // Back face (z=-1): x,y 좌표 사용
+                    return normalize(-coord2) * 3 + normalize(coord1); // -y*3 + x (y축 뒤집기)
+                    
+                case 'right': // Right face (x=1): y,z 좌표 사용
+                case 'left': // Left face (x=-1): y,z 좌표 사용
+                    return normalize(-coord1) * 3 + normalize(coord2); // -y*3 + z (y축 뒤집기)
+                    
+                default:
+                    return 0;
+            }
         }
         
         function setupMouseControls() {
@@ -549,8 +808,8 @@ export class VisualizationServer {
             document.getElementById('moveCount').textContent = state.moveHistory.length;
             document.getElementById('lastMove').textContent = state.moveHistory[state.moveHistory.length - 1] || 'None';
             
-            // 3D 큐브 색상 업데이트
-            updateCubeColors(state.faces);
+            // 3D 큐브 색상 업데이트 (실제 상태 반영)
+            updateCubeColors(state);
         }
         
         function updateStatus(status) {

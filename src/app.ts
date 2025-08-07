@@ -5,7 +5,7 @@ import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js"
 import { z } from "zod";
 import { RubiksCube } from './cubeLogic.js';
 import { VisualizationServer } from './visualizationServer.js';
-import { CubeToolResponse, GameSession, CubeMove } from './types.js';
+import { GameSession, CubeMove } from './types.js';
 
 class RubiksCubeMCPServer {
   private mcpServer: McpServer;
@@ -49,26 +49,15 @@ class RubiksCubeMCPServer {
         this.games.set(gameId, { cube, session });
         this.visualizationServer.registerSession(session);
         
-        const response: CubeToolResponse = {
-          context: {
-            gameId,
-            currentState: cube.getState(),
-            totalMoves: 0
-          },
-          nextAction: cube.getState().solved ? 'finish' : 'manipulateCube'
-        };
+        const currentState = cube.getState();
         
         return {
           content: [
             {
               type: "text",
-              text: `🎲 Rubik's Cube game started!\n\nGame ID: ${gameId}\nStatus: ${cube.getState().solved ? 'SOLVED' : 'Active'}\nTotal moves: 0\n\n🌐 View at: http://localhost:3000/game/${gameId}\n\n${cube.getStateAsText()}`
-            },
-            {
-              type: "text",
               text: JSON.stringify({
-                cube: cube.getState(),
-                nextAction: cube.getState().solved ? "finish" : "manipulateCube"
+                cube: currentState,
+                nextAction: currentState.solved ? "finish" : "manipulateCube"
               }, null, 2)
             }
           ]
@@ -97,10 +86,6 @@ class RubiksCubeMCPServer {
           return {
             content: [
               {
-                type: "text", 
-                text: `🎉 Cube is already solved! Game completed.`
-              },
-              {
                 type: "text",
                 text: JSON.stringify({
                   cube: cube.getState(),
@@ -125,24 +110,8 @@ class RubiksCubeMCPServer {
         // 시각화 서버 업데이트
         this.visualizationServer.updateSession(gameId, newState);
         
-        const response: CubeToolResponse = {
-          context: {
-            gameId,
-            currentState: newState,
-            lastMove: move,
-            totalMoves: newState.moveHistory.length
-          },
-          nextAction: newState.solved ? 'finish' : 'manipulateCube'
-        };
-        
-        const statusText = newState.solved ? '🎉 SOLVED!' : 'Active';
-        
         return {
           content: [
-            {
-              type: "text",
-              text: `🎲 Move executed: ${move}\n\nGame ID: ${gameId}\nStatus: ${statusText}\nTotal moves: ${newState.moveHistory.length}\n\n🌐 View at: http://localhost:3000/game/${gameId}\n\n${cube.getStateAsText()}`
-            },
             {
               type: "text",
               text: JSON.stringify({
@@ -176,10 +145,6 @@ class RubiksCubeMCPServer {
         
         return {
           content: [
-            {
-              type: "text",
-              text: `🎉 Rubik's Cube game completed!\n\nGame ID: ${gameId}\nFinal Status: ${finalState.solved ? 'SOLVED!' : 'Incomplete'}\nTotal moves: ${finalState.moveHistory.length}\nMove history: ${finalState.moveHistory.join(', ')}\n\n🌐 Final state: http://localhost:3000/game/${gameId}`
-            },
             {
               type: "text",
               text: JSON.stringify({
