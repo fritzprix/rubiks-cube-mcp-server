@@ -1,0 +1,11 @@
+
+> @mcp-servers/rubiks-cube@1.0.0 dev
+> tsc --watch & node --watch dist/app.js
+
+[2J[3J[H11:24:59 PM - Starting compilation in watch mode...
+
+[31mFailed running 'dist/app.js'[39m
+
+11:25:00 PM - Found 0 errors. Watching for file changes.
+c[32mRestarting 'dist/app.js'[39m
+[31mFailed running 'dist/app.js'[39m
