@@ -1,6 +1,6 @@
 {
   "name": "rubiks-cube-mcp-server",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "description": "MCP server for Rubik's Cube solving with real-time 3D visualization",
   "main": "dist/app.js",
   "bin": "./dist/app.js",
