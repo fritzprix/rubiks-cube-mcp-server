@@ -2,6 +2,10 @@
 
 A Model Context Protocol (MCP) server that provides AI agents with the ability to solve Rubik's Cube puzzles through systematic manipulation and real-time visualization.
 
+<a href="https://glama.ai/mcp/servers/@fritzprix/rubiks-cube-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@fritzprix/rubiks-cube-mcp-server/badge" alt="Rubik's Cube Server MCP server" />
+</a>
+
 ## Features
 
 - **Interactive Cube Manipulation**: Execute standard Rubik's Cube moves (U, D, L, R, F, B and their variations)
