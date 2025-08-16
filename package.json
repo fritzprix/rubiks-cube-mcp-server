@@ -3,7 +3,9 @@
   "version": "1.1.0",
   "description": "MCP server for Rubik's Cube solving with real-time 3D visualization and MCP UI integration",
   "main": "dist/app.js",
-  "bin": "./dist/app.js",
+  "bin": {
+    "rubiks-cube-mcp-server": "dist/app.js"
+  },
   "files": [
     "dist/**/*",
     "views/**/*",
@@ -35,7 +37,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-org/mcp-server-collection.git",
+    "url": "git+https://github.com/your-org/mcp-server-collection.git",
     "directory": "rubiks-cube-mcp-server"
   },
   "bugs": {
