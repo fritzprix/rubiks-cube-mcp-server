@@ -16,6 +16,7 @@ export interface CubeState {
 export interface CubeResponse {
   gameId: string;
   cube: CubeState;
+  scrambleMoves?: number;
   nextAction: 'manipulateCube' | 'finish' | null;
 }
 
@@ -31,6 +32,7 @@ export interface GameSession {
   createdAt: number;
   lastActivity: number;
   status: 'active' | 'completed';
+  scrambleMoves?: number;
 }
 
 // Colors for cube faces

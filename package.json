@@ -1,7 +1,7 @@
 {
   "name": "rubiks-cube-mcp-server",
-  "version": "1.0.8",
-  "description": "MCP server for Rubik's Cube solving with real-time 3D visualization",
+  "version": "1.1.0",
+  "description": "MCP server for Rubik's Cube solving with real-time 3D visualization and MCP UI integration",
   "main": "dist/app.js",
   "bin": "./dist/app.js",
   "files": [
@@ -43,11 +43,12 @@
   },
   "homepage": "https://github.com/your-org/mcp-server-collection/tree/main/rubiks-cube-mcp-server",
   "dependencies": {
+    "@mcp-ui/server": "^5.2.0",
     "@modelcontextprotocol/sdk": "^1.0.0",
+    "ejs": "^3.1.9",
     "express": "^4.18.2",
     "socket.io": "^4.7.5",
-    "zod": "^3.22.4",
-    "ejs": "^3.1.9"
+    "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",

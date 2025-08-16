@@ -21,7 +21,7 @@ export class VisualizationServer {
     
     this.setupTemplateEngine();
     this.webSocketHandler = new WebSocketHandler(this.server, this.sessions);
-    this.apiRoutes = new APIRoutes(this.sessions, this.webSocketHandler);
+    this.apiRoutes = new APIRoutes(this, this.webSocketHandler);
     this.setupRoutes();
   }
 
@@ -151,6 +151,11 @@ export class VisualizationServer {
       
       this.webSocketHandler.broadcastGameState(gameId, cubeState, session.status);
     }
+  }
+
+  // 세션 목록 조회
+  getSessions(): Map<string, GameSession> {
+    return this.sessions;
   }
 
   // 서버 시작

@@ -2,19 +2,64 @@ import express from 'express';
 import { GameSession, CubeMove } from '../types.js';
 import { RubiksCube } from '../cubeLogic.js';
 
+import { VisualizationServer } from './VisualizationServer.js';
+
 export class APIRoutes {
   private router: express.Router;
   private sessions: Map<string, GameSession>;
   private webSocketHandler: any;
+  private visualizationServer: VisualizationServer;
 
-  constructor(sessions: Map<string, GameSession>, webSocketHandler?: any) {
+  constructor(visualizationServer: VisualizationServer, webSocketHandler?: any) {
     this.router = express.Router();
-    this.sessions = sessions;
+    this.visualizationServer = visualizationServer;
+    this.sessions = this.visualizationServer.getSessions();
     this.webSocketHandler = webSocketHandler;
     this.setupRoutes();
   }
 
   private setupRoutes(): void {
+    // 게임 목록 조회
+    this.router.get('/games', (req, res) => {
+      const sessions = Array.from(this.sessions.values()).map(s => ({
+        id: s.id,
+        status: s.status,
+        createdAt: s.createdAt,
+        lastActivity: s.lastActivity,
+        scrambleMoves: s.scrambleMoves,
+        moveHistory: s.cubeState.moveHistory.length,
+      }));
+      res.json(sessions);
+    });
+
+    // 새 게임 생성
+    this.router.post('/games', (req, res) => {
+      const { scramble = true, difficulty = 20 } = req.body;
+      const gameId = `cube_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+      const cube = new RubiksCube();
+
+      if (scramble) {
+        cube.scramble(difficulty);
+      }
+
+      const session: GameSession = {
+        id: gameId,
+        cubeState: cube.getState(),
+        createdAt: Date.now(),
+        lastActivity: Date.now(),
+        status: 'active',
+        scrambleMoves: difficulty,
+      };
+
+      this.visualizationServer.registerSession(session);
+
+      res.status(201).json({
+        success: true,
+        gameId,
+        message: `Game ${gameId} created.`,
+      });
+    });
+
     // 큐브 상태 조회
     this.router.get('/cube/:gameId', (req, res) => {
       const { gameId } = req.params;

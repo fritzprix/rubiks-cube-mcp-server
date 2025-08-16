@@ -28,41 +28,85 @@ class RubiksCubeMCPServer {
       "startCube",
       "Initialize a new Rubik's Cube game session",
       {
-        scramble: z.boolean().optional().describe("Whether to scramble the cube initially")
+        scramble: z.boolean().optional().describe("Whether to scramble the cube initially"),
+        difficulty: z.number().min(1).max(100).optional().describe("Number of scramble moves (1-100)")
       },
-      async ({ scramble = true }: { scramble?: boolean }) => {
+      async ({ scramble = true, difficulty = 20 }: { scramble?: boolean; difficulty?: number }) => {
         const gameId = `cube_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
         const cube = new RubiksCube();
-        
+
         if (scramble) {
-          cube.scramble();
+          cube.scramble(difficulty);
         }
-        
+
         const session: GameSession = {
           id: gameId,
           cubeState: cube.getState(),
           createdAt: Date.now(),
           lastActivity: Date.now(),
-          status: 'active'
+          status: 'active',
+          scrambleMoves: difficulty
         };
-        
+
         this.games.set(gameId, { cube, session });
         this.visualizationServer.registerSession(session);
-        
+
         const currentState = cube.getState();
         const response: CubeResponse = {
           gameId,
           cube: currentState,
+          scrambleMoves: difficulty,
           nextAction: currentState.solved ? "finish" : "manipulateCube"
         };
-        
+
+        // MCP UI 리소스 생성 (예: 게임 링크)
+        const gameUrl = `http://localhost:3000/game/${gameId}`;
+        const uiResponse = {
+          type: "resource",
+          resource: {
+            uri: `ui://game-link/${gameId}`,
+            mimeType: "text/html",
+            text: `<a href="${gameUrl}" target="_blank">Click to Play!</a>`
+          }
+        } as const;
+
         return {
           content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2)
-            }
+            uiResponse,
+            { type: "text", text: JSON.stringify(response, null, 2) }
           ]
+        };
+      }
+    );
+
+    // 게임 참여
+    this.mcpServer.tool(
+      "joinGame",
+      "Join an existing Rubik's Cube game session",
+      {
+        gameId: z.string().describe("The game session ID to join"),
+      },
+      async ({ gameId }: { gameId: string }) => {
+        const game = this.games.get(gameId);
+        if (!game) {
+          throw new Error(`Game session ${gameId} not found`);
+        }
+
+        const { cube, session } = game;
+        const currentState = cube.getState();
+
+        const response: CubeResponse = {
+          gameId,
+          cube: currentState,
+          scrambleMoves: session.scrambleMoves,
+          nextAction: currentState.solved ? "finish" : "manipulateCube",
+        };
+
+        return {
+          content: [
+            { type: "text", text: "Joined game successfully." },
+            { type: "text", text: JSON.stringify(response, null, 2) },
+          ],
         };
       }
     );
@@ -147,23 +191,25 @@ class RubiksCubeMCPServer {
 
         const { cube, session } = game;
         const finalState = cube.getState();
-        
+
         session.status = 'completed';
         session.lastActivity = Date.now();
-        
+
         const response: CubeResponse = {
           gameId,
           cube: finalState,
-          nextAction: null
+          nextAction: null,
         };
-        
+
+        const message = finalState.solved
+          ? `🎉 Congratulations! You solved the cube for game ${gameId}.`
+          : `Game ${gameId} finished. The cube was not solved.`
+
         return {
           content: [
-            {
-              type: "text",
-              text: JSON.stringify(response, null, 2)
-            }
-          ]
+            { type: "text", text: message },
+            { type: "text", text: JSON.stringify(response, null, 2) },
+          ],
         };
       }
     );
