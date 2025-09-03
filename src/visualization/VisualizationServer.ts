@@ -3,6 +3,7 @@ import { createServer } from 'http';
 import path from 'path';
 import fs from 'fs';
 import { CubeState, GameSession } from '../types.js';
+import { RubiksCube } from '../cubeLogic.js';
 import { WebSocketHandler } from './WebSocketHandler.js';
 import { APIRoutes } from './APIRoutes.js';
 
@@ -20,7 +21,7 @@ export class VisualizationServer {
     
     this.setupTemplateEngine();
     this.webSocketHandler = new WebSocketHandler(this.server, this.sessions);
-    this.apiRoutes = new APIRoutes(this.sessions);
+    this.apiRoutes = new APIRoutes(this, this.webSocketHandler);
     this.setupRoutes();
   }
 
@@ -63,6 +64,35 @@ export class VisualizationServer {
   private setupRoutes(): void {
     // API 라우트
     this.app.use('/api', this.apiRoutes.getRouter());
+    
+    // 테스트용 게임 생성 API
+    this.app.post('/api/test/create-game', (req: any, res: any) => {
+      const gameId = `test_${Date.now()}`;
+      const cube = new RubiksCube();
+      
+      // 스크램블 적용
+      const scrambleMoves = ['U', 'R', 'F', 'L', 'D', 'B'];
+      for (let i = 0; i < 10; i++) {
+        const randomMove = scrambleMoves[Math.floor(Math.random() * scrambleMoves.length)];
+        cube.executeMove(randomMove as any);
+      }
+      
+      const session: GameSession = {
+        id: gameId,
+        cubeState: cube.getState(),
+        status: 'active',
+        createdAt: Date.now(),
+        lastActivity: Date.now()
+      };
+      
+      this.sessions.set(gameId, session);
+      
+      res.json({
+        success: true,
+        gameId,
+        gameUrl: `/game/${gameId}`
+      });
+    });
     
     // 메인 페이지
     this.app.get('/', (req, res) => {
@@ -121,6 +151,11 @@ export class VisualizationServer {
       
       this.webSocketHandler.broadcastGameState(gameId, cubeState, session.status);
     }
+  }
+
+  // 세션 목록 조회
+  getSessions(): Map<string, GameSession> {
+    return this.sessions;
   }
 
   // 서버 시작

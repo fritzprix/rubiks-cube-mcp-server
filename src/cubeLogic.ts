@@ -54,8 +54,13 @@ export class RubiksCube {
     return JSON.parse(JSON.stringify(this.state)); // Deep copy
   }
 
-  // 큐브가 해결되었는지 확인
-  private isSolved(): boolean {
+  // 큐브 상태 설정
+  setState(newState: CubeState): void {
+    this.state = JSON.parse(JSON.stringify(newState)); // Deep copy
+  }
+
+  // 큐브가 해결되었는지 확인 (public으로 변경)
+  isSolved(): boolean {
     for (const face of Object.values(this.state.faces)) {
       const firstColor = face[0][0];
       for (let i = 0; i < 3; i++) {
@@ -67,6 +72,11 @@ export class RubiksCube {
       }
     }
     return true;
+  }
+
+  // 큐브가 해결되었는지 확인 (private - 내부용)
+  private checkSolved(): boolean {
+    return this.isSolved();
   }
 
   // 면을 시계방향으로 90도 회전
@@ -202,7 +212,7 @@ export class RubiksCube {
     moveFunc();
     
     this.state.moveHistory.push(move);
-    this.state.solved = this.isSolved();
+    this.state.solved = this.checkSolved();
   }
 
   // 움직임에 따른 함수 반환
