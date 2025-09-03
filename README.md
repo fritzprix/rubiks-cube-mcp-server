@@ -14,6 +14,10 @@ Complete the Rubik's Cube game session.
 - Move history
 - Completion status with congratulations messageles through systematic manipulation and real-time visualization.
 
+<a href="https://glama.ai/mcp/servers/@fritzprix/rubiks-cube-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@fritzprix/rubiks-cube-mcp-server/badge" alt="Rubik's Cube Server MCP server" />
+</a>
+
 ## Features
 
 - **Interactive Cube Manipulation**: Execute standard Rubik's Cube moves (U, D, L, R, F, B and their variations)
@@ -254,12 +258,6 @@ src/
 
 ## License
 
+
 MIT License - see LICENSE file for details.
 
-## Additional Documentation
-
-- **[Developer Guide](GEMINI.md)**: Comprehensive guide covering project architecture, tech stack, and best practices
-- **[Refactoring Plans](refactoring.md)**: Detailed plans for MCP UI integration and difficulty customization
-- **[Extension Roadmap](refactoring2.md)**: Future enhancements including web-based game management
-
-For detailed information about MCP UI integration, development workflows, and extending the server functionality, please refer to the additional documentation files.
